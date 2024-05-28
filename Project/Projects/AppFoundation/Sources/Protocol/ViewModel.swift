@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol ViewModel: AnyObject {
+public protocol ViewModel: AnyObject {
 
   associatedtype Action
   associatedtype State
