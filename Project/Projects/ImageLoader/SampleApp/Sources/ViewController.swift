@@ -6,12 +6,16 @@
 //
 
 import UIKit
+import ImageLoader
 
 class ViewController: UIViewController {
 
+  @IBOutlet weak var imageView: UIImageView!
+  
   override func viewDidLoad() {
     super.viewDidLoad()
-    // Do any additional setup after loading the view.
+    let imageURL = URL(string: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500")!
+    imageView.setImage(from: imageURL)
   }
 
 
