@@ -58,8 +58,8 @@ class ImageLoaderTests: XCTestCase {
   func testLoadImageFromNetwork() {
     // Given: 캐시에 이미지가 없고, 네트워크에서 이미지를 받아야 하는 상황
     let url = URL(string: "https://example.com/image.png")!
-    let expectedImage = UIImage(systemName: "person.fill")!
-    let mockData = expectedImage.pngData()!
+    let originImage = UIImage(systemName: "person.fill")!
+    let mockData = originImage.pngData()!
 
     MockURLProtocol.requestHandler = { request in
       let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
@@ -70,10 +70,10 @@ class ImageLoaderTests: XCTestCase {
     imageLoader.loadImage(url) { image in
       expectation.fulfill()
       // Then: 이미지를 캐시해야함
-      XCTAssertEqual(self.imageLoader.cache.object(forKey: url.absoluteString)!.sha256(), expectedImage.sha256())
+      XCTAssertEqual(self.imageLoader.cache.object(forKey: url.absoluteString)!.sha256(), UIImage(data: mockData)!.sha256())
     }
     
-    waitForExpectations(timeout: 10, handler: nil)
+    waitForExpectations(timeout: 5, handler: nil)
   }
 
 }
@@ -111,7 +111,7 @@ class MockURLProtocol: URLProtocol {
 }
 
 extension UIImage {
-  func sha256() -> String? {
+  func sha256() -> String? { // 이미지 비교를 위해 사용
     guard let imageData = self.pngData() else { return nil }
     let hash = SHA256.hash(data: imageData)
     return hash.compactMap { String(format: "%02x", $0) }.joined()
