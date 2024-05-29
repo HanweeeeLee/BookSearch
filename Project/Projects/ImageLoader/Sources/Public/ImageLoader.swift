@@ -78,11 +78,14 @@ public class ImageLoader {
 
 extension UIImageView {
   
-  @MainActor
-  public func setImage(from url: URL, cacheType: ImageLoader.CacheType = .memory) {
+  public func setImage(from url: URL?, cacheType: ImageLoader.CacheType = .memory, completion: (() -> Void)? = nil) {
+    guard let url else { return }
     let imageLoader = ImageLoader(cacheType: cacheType)
     imageLoader.loadImage(url) { [weak self] image in
-      self?.image = image
+      DispatchQueue.main.async {
+        self?.image = image
+      }
+      completion?()
     }
   }
   
