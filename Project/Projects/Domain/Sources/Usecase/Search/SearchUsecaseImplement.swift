@@ -39,6 +39,8 @@ public final class SearchUsecaseImplement: SearchUsecase {
   // MARK: - private method
   
   private func bookList(keyword: String, page: UInt) async -> Result<[Book], Error> {
+    if self.isQuerying { return .failure(SearchError.queryInProgress) }
+    
     self.isQuerying = true
     defer { self.isQuerying = false }
     
@@ -71,7 +73,7 @@ public final class SearchUsecaseImplement: SearchUsecase {
   }
   
   public func moreBookList() async -> Result<[Book], Error> {
-    guard !isEndOfReach else { return .success([]) }
+    guard !isEndOfReach else { return .failure(SearchError.endOfReach) }
     self.currentPage += 1
     return await bookList(
       keyword: self.currentKeyword,

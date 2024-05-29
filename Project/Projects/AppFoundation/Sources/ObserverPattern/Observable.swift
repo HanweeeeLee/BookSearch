@@ -12,15 +12,18 @@ public class Observable<T> {
   // MARK: private property
   
   private var observers: [UUID: (T) -> Void] = [:]
-  private var value: T? {
+  
+  // MARK: public property
+  
+  private(set) public var value: T? {
     didSet {
       notifyObservers()
     }
   }
   
-  // MARK: internal property
-  
   // MARK: lifeCycle
+  
+  public init() { }
   
   // MARK: private method
   
