@@ -18,3 +18,8 @@ public protocol SearchUsecase {
   func moreBookList() async -> Result<[Book], Error>
   
 }
+
+public enum SearchError: Error {
+  case queryInProgress
+  case endOfReach
+}
