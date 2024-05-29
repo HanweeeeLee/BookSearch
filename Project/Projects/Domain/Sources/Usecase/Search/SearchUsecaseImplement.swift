@@ -9,6 +9,9 @@
 import AppFoundation
 import Foundation
 
+/**
+ 이 클래스의 기능들은  thread safe함을 보장하지 않습니다.
+ */
 public final class SearchUsecaseImplement: SearchUsecase {
   
   // MARK: - private properties
@@ -41,11 +44,11 @@ public final class SearchUsecaseImplement: SearchUsecase {
     
     let result = await repository.searchBookList(keyword: keyword, page: page)
     switch result {
-    case .success(let cityList):
-      if cityList.count < countOfResponsesPerQuestion {
+    case .success(let bookList):
+      if bookList.count < countOfResponsesPerQuestion {
         isEndOfReach = true
       }
-      return .success(cityList)
+      return .success(bookList)
     case .failure(let err):
       return .failure(err)
     }
