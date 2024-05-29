@@ -1,24 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13122.16" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13104.12"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22684"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="DataSampleApp" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" xcode11CocoaTouchSystemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="v3L-cP-M7D">
+                                <rect key="frame" x="272" y="408.66666666666669" width="121" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Book Search"/>
+                                <connections>
+                                    <action selector="searchBook:" destination="BYZ-38-t0r" eventType="touchUpInside" id="u3A-e8-gOJ"/>
+                                </connections>
+                            </button>
+                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Book Name" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="AbT-rn-0XS">
+                                <rect key="frame" x="0.0" y="409" width="272" height="34"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="isbn13" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="LDI-e0-0QU">
+                                <rect key="frame" x="0.0" y="451" width="286" height="34"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gfW-EG-5p0">
+                                <rect key="frame" x="286" y="450.66666666666669" width="107" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="BookDetail"/>
+                                <connections>
+                                    <action selector="bookDetail:" destination="BYZ-38-t0r" eventType="touchUpInside" id="CPf-cg-ziy"/>
+                                </connections>
+                            </button>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="LDI-e0-0QU" firstAttribute="top" secondItem="AbT-rn-0XS" secondAttribute="bottom" constant="8" id="GCD-wN-qiP"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="gfW-EG-5p0" secondAttribute="trailing" id="Jyx-dA-SGa"/>
+                            <constraint firstItem="LDI-e0-0QU" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="KpB-ew-W5O"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="v3L-cP-M7D" secondAttribute="trailing" id="SqO-BX-mLO"/>
+                            <constraint firstItem="v3L-cP-M7D" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="U7R-wN-ozS"/>
+                            <constraint firstItem="AbT-rn-0XS" firstAttribute="centerY" secondItem="v3L-cP-M7D" secondAttribute="centerY" id="acd-l8-wnn"/>
+                            <constraint firstItem="AbT-rn-0XS" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="eQc-U7-BGG"/>
+                            <constraint firstItem="gfW-EG-5p0" firstAttribute="centerY" secondItem="LDI-e0-0QU" secondAttribute="centerY" id="mX8-sZ-4vw"/>
+                            <constraint firstItem="gfW-EG-5p0" firstAttribute="leading" secondItem="LDI-e0-0QU" secondAttribute="trailing" id="qRG-wc-0QZ"/>
+                            <constraint firstItem="v3L-cP-M7D" firstAttribute="leading" secondItem="AbT-rn-0XS" secondAttribute="trailing" id="u45-jQ-ect"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="gfW-EG-5p0" secondAttribute="trailing" id="yEl-xU-zS1"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="bookSearchTextField" destination="AbT-rn-0XS" id="yWB-n5-jfz"/>
+                        <outlet property="detailBookTextField" destination="LDI-e0-0QU" id="uR9-sq-OXA"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="118" y="4"/>
         </scene>
     </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
 </document>
