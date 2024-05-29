@@ -11,8 +11,11 @@ import Foundation
 public protocol ViewModel: AnyObject {
 
   associatedtype Action
-  associatedtype State
+  associatedtype Effect
+  associatedtype State: Equatable
+  
+  var state: Observable<State> { get }
 
   func send(_ input: Action)
-  var state: Observable<State> { get }
+  func applyEffect(_ effect: Effect)
 }

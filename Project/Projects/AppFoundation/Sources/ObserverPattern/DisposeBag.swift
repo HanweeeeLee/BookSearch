@@ -8,17 +8,19 @@
 import Foundation
 
 extension Disposable {
-  func disposed(by disposeBag: DisposeBag) {
+  public func disposed(by disposeBag: DisposeBag) {
     disposeBag.add(self)
   }
 }
 
-class DisposeBag {
+public class DisposeBag {
   private var disposables: [Disposable] = []
   
   public func add(_ disposable: Disposable) {
     disposables.append(disposable)
   }
+  
+  public init() { }
   
   deinit {
     disposables.forEach { $0.dispose() }
