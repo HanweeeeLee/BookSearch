@@ -9,11 +9,13 @@
 import Foundation
 import AppFoundation
 import Domain
+import Coordinator
 
-public final class DetailViewModel: ViewModel {
+public final class DetailViewModel: ViewModel, CoordinatorViewModel {
   
   public enum Action {
     case requestDetail
+    case endFlow
   }
   
   public enum Effect {
@@ -36,14 +38,17 @@ public final class DetailViewModel: ViewModel {
   // MARK: - public property
   
   public var state: Observable<State> = Observable<State>()
+  public var coordinator: Coordinator?
   
   // MARK: - lifeCycle
   
   public init(
+    coordinator: Coordinator?,
     detailUsecase: DetailUsecase,
     bookId: String
   ) {
     self.state.onNext(State())
+    self.coordinator = coordinator
     self.bookId = bookId
     self.detailUsecase = detailUsecase
   }
@@ -63,6 +68,8 @@ public final class DetailViewModel: ViewModel {
         }
         self?.applyEffect(.setIsLoading(false))
       }
+    case .endFlow:
+      self.endFlow()
     }
   }
   
@@ -88,5 +95,9 @@ public final class DetailViewModel: ViewModel {
   }
   
   // MARK: - public method
+  
+  public func endFlow() {
+    self.coordinator?.navigate(to: .detailIsComplete)
+  }
   
 }

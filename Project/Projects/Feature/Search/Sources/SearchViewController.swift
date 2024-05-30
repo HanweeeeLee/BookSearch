@@ -56,8 +56,19 @@ public final class SearchViewController: UIViewController, View {
   private var bookList: Pulse<[Book]> = .init(wrappedValue: []) {
     didSet {
       if oldValue.valueUpdatedCount != bookList.valueUpdatedCount {
-        DispatchQueue.main.async { [weak self] in
-          self?.tableView.reloadData()
+        if bookList.value.count < oldValue.value.count {
+          DispatchQueue.main.async { [weak self] in
+            self?.tableView.reloadData()
+          }
+        } else {
+          let startIndex = oldValue.value.count
+          let endIndex = startIndex + bookList.value.count - oldValue.value.count
+          let indexPaths = (startIndex..<endIndex).map { IndexPath(row: $0, section: 0) }
+          DispatchQueue.main.async { [weak self] in
+            self?.tableView.beginUpdates()
+            self?.tableView.insertRows(at: indexPaths, with: .automatic)
+            self?.tableView.endUpdates()
+          }
         }
       }
     }
@@ -111,6 +122,7 @@ public final class SearchViewController: UIViewController, View {
   
   public override func viewDidLoad() {
     super.viewDidLoad()
+    self.title = "검색"
     bind(viewModel: self.viewModel)
   }
   
@@ -179,6 +191,11 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     if offsetY > contentHeight - scrollView.frame.height {
       self.viewModel.send(.moreSearch)
     }
+  }
+  
+  public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    guard let item = self.viewModel.state.value?.bookList.value[safe: indexPath.row] else { return }
+    self.viewModel.send(.moveToDetail(id: item.id, title: item.title))
   }
   
 }

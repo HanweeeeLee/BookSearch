@@ -135,20 +135,18 @@ public final class DetailViewController: UIViewController, View {
   
   // MARK: - private property
   
-  public var viewModel: DetailViewModel
-  public var disposeBag = DisposeBag()
   
   private var bookDetail: Pulse<BookDetail?> = .init(wrappedValue: nil) {
     didSet {
-      if oldValue != bookDetail {
-        updateUI()
+      if oldValue.valueUpdatedCount != bookDetail.valueUpdatedCount {
+        self.updateUI()
       }
     }
   }
   
   private var isLoading: Pulse<Bool> = .init(wrappedValue: false) {
     didSet {
-      if oldValue != isLoading {
+      if oldValue.valueUpdatedCount != isLoading.valueUpdatedCount {
         DispatchQueue.main.async { [weak self] in
           if self?.isLoading.value == true {
             self?.loadingIndicator.startAnimating()
@@ -162,7 +160,7 @@ public final class DetailViewController: UIViewController, View {
   
   private var err: Pulse<NSError?> = .init(wrappedValue: nil) {
     didSet {
-      if oldValue != err {
+      if oldValue.valueUpdatedCount != err.valueUpdatedCount {
         if let err = err.value {
           DispatchQueue.main.async { [weak self] in
             let alertController = UIAlertController(title: "Error", message: err.localizedDescription, preferredStyle: .alert)
@@ -177,11 +175,24 @@ public final class DetailViewController: UIViewController, View {
   
   // MARK: - public property
   
+  public var viewModel: DetailViewModel
+  public var disposeBag = DisposeBag()
+  
   // MARK: - lifeCycle
   
-  public init(viewModel: DetailViewModel) {
+  public init(
+    viewModel: DetailViewModel
+  ) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
+  }
+  
+  public convenience init(
+    title: String,
+    viewModel: DetailViewModel
+  ) {
+    self.init(viewModel: viewModel)
+    self.title = title
   }
   
   required init?(coder: NSCoder) {
@@ -199,15 +210,18 @@ public final class DetailViewController: UIViewController, View {
     self.viewModel.send(.requestDetail)
   }
   
-  public override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
+  public override func didMove(toParent parent: UIViewController?) {
+    super.didMove(toParent: parent)
+    if parent == nil {
+      self.viewModel.send(.endFlow)
+    }
   }
   
   public func bind(viewModel: DetailViewModel) {
-    viewModel.state.subscribe { state in
-      self.isLoading = state.isLoading
-      self.bookDetail = state.bookDetail
-      self.err = state.err
+    viewModel.state.subscribe { [weak self] state in
+      self?.isLoading = state.isLoading
+      self?.bookDetail = state.bookDetail
+      self?.err = state.err
     }
     .disposed(by: self.disposeBag)
   }
@@ -222,7 +236,12 @@ public final class DetailViewController: UIViewController, View {
     scrollView.fillSuperview()
     
     scrollView.addSubview(contentView)
-    contentView.anchor(top: scrollView.topAnchor, leading: scrollView.leadingAnchor, bottom: scrollView.bottomAnchor, trailing: scrollView.trailingAnchor)
+    contentView.anchor(
+      top: scrollView.topAnchor,
+      leading: scrollView.leadingAnchor,
+      bottom: scrollView.bottomAnchor,
+      trailing: scrollView.trailingAnchor
+    )
     contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor).isActive = true
     
     [loadingIndicator, titleLabel, subTitleLabel, priceLabel, descriptionLabel, imageView, languageLabel, ratingLabel, pageLabel, authorsLabel, publisherYear, publisherLabel, linkButton].forEach {
