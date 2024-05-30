@@ -18,6 +18,7 @@ class ViewController: UIViewController {
   @IBAction func testStartAction(_ sender: Any) {
     let vc = DetailViewController(
       viewModel: DetailViewModel(
+        coordinator: nil, 
         detailUsecase: DetailUsecaseImplement(
           repository: StubDetailRepositoryImplement()
         ),

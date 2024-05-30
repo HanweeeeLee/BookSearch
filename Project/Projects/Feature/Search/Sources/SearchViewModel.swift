@@ -9,12 +9,14 @@
 import Foundation
 import AppFoundation
 import Domain
+import Coordinator
 
-public final class SearchViewModel: ViewModel {
+public final class SearchViewModel: ViewModel, CoordinatorViewModel {
   
   public enum Action {
     case search(keyword: String)
     case moreSearch
+    case moveToDetail(id: String, title: String)
   }
   
   public enum Effect {
@@ -37,12 +39,15 @@ public final class SearchViewModel: ViewModel {
   // MARK: - public property
   
   public var state: Observable<State> = Observable<State>()
+  public var coordinator: Coordinator?
   
   // MARK: - lifeCycle
   
   public init(
+    coordinator: Coordinator?,
     searchUsecase: SearchUsecase
   ) {
+    self.coordinator = coordinator
     self.state.onNext(State())
     self.searchUsecase = searchUsecase
   }
@@ -76,6 +81,8 @@ public final class SearchViewModel: ViewModel {
         }
         self?.applyEffect(.setIsLoading(false))
       }
+    case .moveToDetail(let id, let title):
+      self.coordinator?.navigate(to: .detailIsRequired(id: id, title: title))
     }
   }
   
@@ -108,4 +115,8 @@ public final class SearchViewModel: ViewModel {
   
   // MARK: - public method
   
+  public func endFlow() {
+    // 뒤로 갈 화면이 없음
+  }
+
 }

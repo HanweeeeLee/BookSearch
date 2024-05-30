@@ -21,7 +21,6 @@ final class BookTableViewCell: UITableViewCell, ClassIdentifiable {
     imageView.contentMode = .scaleAspectFill
     imageView.clipsToBounds = true
     imageView.layer.cornerRadius = 8
-    imageView.backgroundColor = .lightGray
     return imageView
   }()
   
@@ -65,7 +64,11 @@ final class BookTableViewCell: UITableViewCell, ClassIdentifiable {
   }
   
   override func prepareForReuse() {
-    self.bookImageView.backgroundColor = .lightGray
+    super.prepareForReuse()
+    self.bookImageView.image = nil
+    self.titleLabel.text = ""
+    self.subTitleLabel.text = ""
+    self.priceLabel.text = ""
   }
   
   // MARK: - private method
@@ -114,7 +117,6 @@ final class BookTableViewCell: UITableViewCell, ClassIdentifiable {
     subTitleLabel.text = data.subTitle
     priceLabel.text = data.price
     self.bookImageView.setImage(from: data.imageUrl, completion: {
-      self.bookImageView.backgroundColor = .clear
     })
   }
 }

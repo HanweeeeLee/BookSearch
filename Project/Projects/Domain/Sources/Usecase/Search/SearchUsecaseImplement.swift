@@ -18,7 +18,7 @@ public final class SearchUsecaseImplement: SearchUsecase {
   
   private let repository: SearchRepository
   private let countOfResponsesPerQuestion: UInt
-  private var currentPage: UInt = 0
+  private var currentPage: UInt = 1
   private var currentKeyword: String = ""
   
   // MARK: - public properties
@@ -57,7 +57,7 @@ public final class SearchUsecaseImplement: SearchUsecase {
   }
   
   private func resetPagination() {
-    currentPage = 0
+    currentPage = 1
     isEndOfReach = false
   }
   
