@@ -25,9 +25,9 @@ public final class SearchViewModel: ViewModel {
   }
   
   public struct State: Equatable {
-    var isLoading: Bool = false
-    var err: NSError?
-    var bookList: [Book] = []
+    var isLoading: Pulse<Bool> = .init(wrappedValue: false)
+    var err: Pulse<NSError?> = .init(wrappedValue: nil)
+    var bookList: Pulse<[Book]> = .init(wrappedValue: [])
   }
   
   // MARK: - private property
@@ -63,6 +63,7 @@ public final class SearchViewModel: ViewModel {
         self?.applyEffect(.setIsLoading(false))
       }
     case .moreSearch:
+      if self.searchUsecase.isEndOfReach || self.searchUsecase.isQuerying { return }
       Task { [weak self] in
         self?.applyEffect(.setIsLoading(true))
         guard let searchResult = await self?.moreBookList() else { return }
@@ -83,21 +84,16 @@ public final class SearchViewModel: ViewModel {
     
     switch effect {
     case .setIsLoading(let isLoading):
-      newState.isLoading = isLoading
+      newState.isLoading = .init(wrappedValue: isLoading, oldPulse: newState.isLoading)
     case .setError(let err):
-      newState.err = err
+      newState.err = .init(wrappedValue: err, oldPulse: newState.err)
     case .setBookList(let list):
-      newState.bookList = list
+      newState.bookList = .init(wrappedValue: list, oldPulse: newState.bookList)
     case .appendBookList(let list):
-      newState.bookList = newState.bookList + list
+      newState.bookList = .init(wrappedValue: newState.bookList.value + list, oldPulse: newState.bookList)
     }
     
     self.state.onNext(newState)
-    if let _ = newState.err {
-      var clearErrState = newState
-      clearErrState.err = nil
-      self.state.onNext(clearErrState)
-    }
   }
   
   // MARK: - private method
@@ -112,5 +108,4 @@ public final class SearchViewModel: ViewModel {
   
   // MARK: - public method
   
-
 }

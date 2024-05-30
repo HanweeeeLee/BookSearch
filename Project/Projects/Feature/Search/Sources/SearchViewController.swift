@@ -53,9 +53,9 @@ public final class SearchViewController: UIViewController, View {
   public var viewModel: SearchViewModel
   public var disposeBag = DisposeBag()
   
-  private var bookList: [Book] = [] {
+  private var bookList: Pulse<[Book]> = .init(wrappedValue: []) {
     didSet {
-      if oldValue != bookList {
+      if oldValue.valueUpdatedCount != bookList.valueUpdatedCount {
         DispatchQueue.main.async { [weak self] in
           self?.tableView.reloadData()
         }
@@ -63,11 +63,11 @@ public final class SearchViewController: UIViewController, View {
     }
   }
   
-  private var isLoading: Bool = false {
+  private var isLoading: Pulse<Bool> = .init(wrappedValue: false) {
     didSet {
-      if oldValue != isLoading {
+      if oldValue.valueUpdatedCount != isLoading.valueUpdatedCount {
         DispatchQueue.main.async { [weak self] in
-          if self?.isLoading == true {
+          if self?.isLoading.value == true {
             self?.loadingIndicator.startAnimating()
           } else {
             self?.loadingIndicator.stopAnimating()
@@ -77,10 +77,10 @@ public final class SearchViewController: UIViewController, View {
     }
   }
   
-  private var err: NSError? {
+  private var err: Pulse<NSError?> = .init(wrappedValue: nil) {
     didSet {
-      if oldValue != err {
-        guard let err = self.err else { return }
+      if oldValue.valueUpdatedCount != err.valueUpdatedCount {
+        guard let err = self.err.value else { return }
         DispatchQueue.main.async { [weak self] in
           let alertController = UIAlertController(title: "Error", message: err.localizedDescription, preferredStyle: .alert)
           let okAction = UIAlertAction(title: "확인", style: .default, handler: nil)
@@ -120,10 +120,10 @@ public final class SearchViewController: UIViewController, View {
   
   public func bind(viewModel: SearchViewModel) {
     
-    viewModel.state.subscribe { state in
-      self.isLoading = state.isLoading
-      self.bookList = state.bookList
-      self.err = state.err
+    viewModel.state.subscribe { [weak self] state in
+      self?.isLoading = state.isLoading
+      self?.bookList = state.bookList
+      self?.err = state.err
     }
     .disposed(by: self.disposeBag)
     
@@ -157,12 +157,12 @@ public final class SearchViewController: UIViewController, View {
 extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
   
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return self.bookList.count
+    return self.bookList.value.count
   }
   
   public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     guard let cell: BookTableViewCell = tableView.dequeueReusableCell(withIdentifier: BookTableViewCell.identifier, for: indexPath) as? BookTableViewCell else { return UITableViewCell() }
-    if let info = self.bookList[safe: indexPath.row] {
+    if let info = self.bookList.value[safe: indexPath.row] {
       cell.setConfigure(info)
     }
     return cell
