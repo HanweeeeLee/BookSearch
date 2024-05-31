@@ -18,6 +18,7 @@ class ViewController: UIViewController {
   @IBAction func testStartAction(_ sender: Any) {
     let vc = SearchViewController(
       viewModel: SearchViewModel(
+        coordinator: nil, 
         searchUsecase: SearchUsecaseImplement(
           countOfResponsesPerQuestion: 5,
           repository: StubSearchRepositoryImplement()
