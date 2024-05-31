@@ -33,7 +33,18 @@ extension Project {
     return Project(
       name: name,
       organizationName: Project.organizationName,
-      settings: Settings.settings(),
+      settings: Settings.settings(
+        configurations: [
+          .debug(
+            name: "Debug",
+            xcconfig: .init("./AppConfigure/App.xcconfig")
+          ),
+          .release(
+            name: "Release",
+            xcconfig: .init("./AppConfigure/App.xcconfig")
+          )
+        ]
+      ),
       targets: targets,
       resourceSynthesizers: [
         .assets()
@@ -74,7 +85,7 @@ extension Project {
       product: .app,
       bundleId: "\(Project.bundleNamePrefix).\(bundleAppName ?? name)",
       deploymentTargets: Project.developmentTarget,
-      infoPlist: .file(path: "./InfoPlist/Info.plist"),
+      infoPlist: .file(path: "./AppConfigure/Info.plist"),
       sources: ["Sources/**"],
       resources: willSetResourcePath,
       scripts: targetScripts,
