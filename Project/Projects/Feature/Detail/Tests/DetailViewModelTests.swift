@@ -50,7 +50,8 @@ final class DetailViewModelTests: XCTestCase {
       language: "English",
       publisher: "Big Nerd Ranch",
       authors: "Matthew Mathias, John Gallagher",
-      description: "A comprehensive guide to Swift programming."
+      description: "A comprehensive guide to Swift programming.", 
+      pdfUrls: ["Chapter1": URL(string: "https://naver.com")!]
     )
     usecase.result = .success(detail)
     let expectation = XCTestExpectation(description: "상세 정보 얻어오는중")
