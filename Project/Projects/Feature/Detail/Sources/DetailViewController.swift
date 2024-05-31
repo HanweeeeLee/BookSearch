@@ -133,6 +133,15 @@ public final class DetailViewController: UIViewController, View {
     return button
   }()
   
+  private lazy var pdfButton: UIButton = {
+    let button = UIButton(type: .system)
+    button.setTitle("PDF 보기", for: .normal)
+    button.addTarget(self, action: #selector(showPdfSelectorView), for: .touchUpInside)
+    return button
+  }()
+  
+  private var pdfMenuAlertController: UIAlertController?
+  
   // MARK: - private property
   
   // MARK: - public property
@@ -191,7 +200,7 @@ public final class DetailViewController: UIViewController, View {
         }
       }
       .disposed(by: self.disposeBag)
-
+    
     viewModel.state.map { $0.err }
       .withPrevious { newValue, oldValue in
         return newValue.valueUpdatedCount != oldValue?.valueUpdatedCount
@@ -243,7 +252,7 @@ public final class DetailViewController: UIViewController, View {
     )
     contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor).isActive = true
     
-    [loadingIndicator, titleLabel, subTitleLabel, priceLabel, descriptionLabel, imageView, languageLabel, ratingLabel, pageLabel, authorsLabel, publisherYear, publisherLabel, linkButton].forEach {
+    [loadingIndicator, titleLabel, subTitleLabel, priceLabel, descriptionLabel, imageView, languageLabel, ratingLabel, pageLabel, authorsLabel, publisherYear, publisherLabel, pdfButton, linkButton].forEach {
       contentView.addSubview($0)
     }
     
@@ -397,6 +406,20 @@ public final class DetailViewController: UIViewController, View {
     linkButton.anchor(
       top: descriptionLabel.bottomAnchor,
       leading: contentView.leadingAnchor,
+      bottom: nil,
+      trailing: contentView.trailingAnchor,
+      padding: .init(
+        top: .itemTopPadding,
+        left: .itemSidePadding,
+        bottom: 0,
+        right: .itemSidePadding
+      )
+    )
+    linkButton.isHidden = true
+    
+    pdfButton.anchor(
+      top: linkButton.bottomAnchor,
+      leading: contentView.leadingAnchor,
       bottom: contentView.bottomAnchor,
       trailing: contentView.trailingAnchor,
       padding: .init(
@@ -406,6 +429,8 @@ public final class DetailViewController: UIViewController, View {
         right: .itemSidePadding
       )
     )
+    pdfButton.isHidden = true
+    
   }
   
   private func updateUI(info bookDetail: BookDetail) {
@@ -422,12 +447,43 @@ public final class DetailViewController: UIViewController, View {
       self?.publisherLabel.text = "출판사: \(bookDetail.publisher)"
       self?.linkButton.isHidden = bookDetail.linkUrl == nil
       self?.imageView.setImage(from: bookDetail.imageUrl)
+      self?.linkButton.isHidden = false
+      if bookDetail.pdfUrls.keys.count > 0 {
+        self?.pdfButton.isHidden = false
+      }
     }
   }
   
   @objc private func openLink() {
     if let url = self.viewModel.state.value?.bookDetail.value?.linkUrl {
-      UIApplication.shared.open(url)
+      self.viewModel.send(
+        .moveToWeb(
+          url: url,
+          title: self.viewModel.state.value?.bookDetail.value?.title ?? "상세정보"
+        )
+      )
     }
+  }
+  
+  @objc private func showPdfSelectorView() {
+    guard let pdfUrls = viewModel.state.value?.bookDetail.value?.pdfUrls else { return }
+    let alertController = UIAlertController(title: "PDF 목록", message: nil, preferredStyle: .actionSheet)
+    
+    for (name, url) in pdfUrls {
+      let action = UIAlertAction(title: name, style: .default) { [weak self] _ in
+        self?.openPDF(url: url, title: name)
+      }
+      alertController.addAction(action)
+    }
+    
+    let cancelAction = UIAlertAction(title: "취소", style: .cancel, handler: nil)
+    alertController.addAction(cancelAction)
+    
+    self.present(alertController, animated: true, completion: nil)
+    self.pdfMenuAlertController = alertController
+  }
+  
+  private func openPDF(url: URL, title: String) {
+    self.viewModel.send(.moveToWeb(url: url, title: title))
   }
 }

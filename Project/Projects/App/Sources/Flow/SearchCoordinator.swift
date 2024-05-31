@@ -30,10 +30,6 @@ final class SearchCoordinator: Coordinator {
     self.root = root
     self.parentsCoordinator = parentsCoordinator
   }
-  
-  deinit {
-    print("\(self) deinit")
-  }
 
   // MARK: private function
 

@@ -12,6 +12,7 @@ import Foundation
 import UIKit
 import Detail
 import Data
+import UIComponents
 
 final class DetailCoordinator: Coordinator {
   
@@ -31,10 +32,6 @@ final class DetailCoordinator: Coordinator {
     self.parentsCoordinator = parentsCoordinator
   }
   
-  deinit {
-    print("\(self) deinit")
-  }
-  
   // MARK: private function
   
   // MARK: internal function
@@ -52,6 +49,11 @@ final class DetailCoordinator: Coordinator {
       self.viewModel = viewModel
       let vc = DetailViewController(title: title, viewModel: viewModel)
       (self.root as? UINavigationController)?.pushViewController(vc, animated: true)
+    case .webViewIsRequired(let url, let title):
+      let vc = CommonWebViewController(url: url, title: title, showType: .present)
+      let navigationViewController = UINavigationController(rootViewController: vc)
+      navigationViewController.modalPresentationStyle = .fullScreen
+      (self.root as? UINavigationController)?.present(navigationViewController, animated: true)
     case .detailIsComplete:
       self.viewModel = nil
       self.parentsCoordinator?.navigate(to: .detailIsComplete)

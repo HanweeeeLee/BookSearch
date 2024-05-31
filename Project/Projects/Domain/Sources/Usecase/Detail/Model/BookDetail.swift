@@ -22,6 +22,7 @@ public struct BookDetail: Equatable {
   public let publisher: String
   public let authors: String
   public let description: String
+  public let pdfUrls: [String: URL]
   
   public init(
     id: String,
@@ -36,7 +37,8 @@ public struct BookDetail: Equatable {
     language: String,
     publisher: String,
     authors: String,
-    description: String
+    description: String,
+    pdfUrls: [String: URL]
   ) {
     self.id = id
     self.title = title
@@ -51,6 +53,7 @@ public struct BookDetail: Equatable {
     self.publisher = publisher
     self.authors = authors
     self.description = description
+    self.pdfUrls = pdfUrls
   }
   
   public static func == (lhs: BookDetail, rhs: BookDetail) -> Bool {

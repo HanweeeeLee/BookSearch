@@ -6,14 +6,22 @@
 //
 
 import UIKit
+import UIComponents
 
 class ViewController: UIViewController {
-
+  
   override func viewDidLoad() {
     super.viewDidLoad()
-    // Do any additional setup after loading the view.
   }
-
-
+  
+  @IBAction func commonWebViewAction(_ sender: Any) {
+    let vc = CommonWebViewController(
+      url: URL(string: "https://naver.com")!,
+      title: "title"
+    )
+    self.present(vc, animated: true)
+  }
+  
+  
 }
 

@@ -15,6 +15,7 @@ public final class DetailViewModel: ViewModel, CoordinatorViewModel {
   
   public enum Action {
     case requestDetail
+    case moveToWeb(url: URL, title: String)
     case endFlow
   }
   
@@ -70,6 +71,8 @@ public final class DetailViewModel: ViewModel, CoordinatorViewModel {
       }
     case .endFlow:
       self.endFlow()
+    case .moveToWeb(let url, let title):
+      self.coordinator?.navigate(to: .webViewIsRequired(url: url, title: title))
     }
   }
   
