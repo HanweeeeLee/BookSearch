@@ -13,6 +13,18 @@ import Coordinator
 
 public final class SearchViewModel: ViewModel, CoordinatorViewModel {
   
+  public struct BookList: Equatable {
+    private(set) var id: UUID = UUID()
+    let itemList: [Book]
+    
+    init(itemList: [Book], id: UUID? = nil) {
+      self.itemList = itemList
+      if let id {
+        self.id = id
+      }
+    }
+  }
+  
   public enum Action {
     case search(keyword: String)
     case moreSearch
@@ -22,14 +34,14 @@ public final class SearchViewModel: ViewModel, CoordinatorViewModel {
   public enum Effect {
     case setIsLoading(Bool)
     case setError(NSError?)
-    case setBookList([Book])
+    case setBookList(BookList)
     case appendBookList([Book])
   }
   
   public struct State: Equatable {
     var isLoading: Pulse<Bool> = .init(wrappedValue: false)
     var err: Pulse<NSError?> = .init(wrappedValue: nil)
-    var bookList: Pulse<[Book]> = .init(wrappedValue: [])
+    var bookList: Pulse<BookList> = .init(wrappedValue: .init(itemList: []))
   }
   
   // MARK: - private property
@@ -60,7 +72,7 @@ public final class SearchViewModel: ViewModel, CoordinatorViewModel {
         guard let searchResult = await self?.searchBookList(keyword: keyword) else { return }
         switch searchResult {
         case .success(let bookList):
-          self?.applyEffect(.setBookList(bookList))
+          self?.applyEffect(.setBookList(.init(itemList: bookList)))
         case .failure(let err):
           guard !(err is SearchError) else { return }
           self?.applyEffect(.setError(err as NSError))
@@ -97,7 +109,7 @@ public final class SearchViewModel: ViewModel, CoordinatorViewModel {
     case .setBookList(let list):
       newState.bookList = .init(wrappedValue: list, oldPulse: newState.bookList)
     case .appendBookList(let list):
-      newState.bookList = .init(wrappedValue: newState.bookList.value + list, oldPulse: newState.bookList)
+      newState.bookList = .init(wrappedValue: .init(itemList: newState.bookList.value.itemList + list, id: newState.bookList.value.id), oldPulse: newState.bookList)
     }
     
     self.state.onNext(newState)

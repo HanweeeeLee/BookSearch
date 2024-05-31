@@ -53,54 +53,7 @@ public final class SearchViewController: UIViewController, View {
   public var viewModel: SearchViewModel
   public var disposeBag = DisposeBag()
   
-  private var bookList: Pulse<[Book]> = .init(wrappedValue: []) {
-    didSet {
-      if oldValue.valueUpdatedCount != bookList.valueUpdatedCount {
-        if bookList.value.count < oldValue.value.count {
-          DispatchQueue.main.async { [weak self] in
-            self?.tableView.reloadData()
-          }
-        } else {
-          let startIndex = oldValue.value.count
-          let endIndex = startIndex + bookList.value.count - oldValue.value.count
-          let indexPaths = (startIndex..<endIndex).map { IndexPath(row: $0, section: 0) }
-          DispatchQueue.main.async { [weak self] in
-            self?.tableView.beginUpdates()
-            self?.tableView.insertRows(at: indexPaths, with: .automatic)
-            self?.tableView.endUpdates()
-          }
-        }
-      }
-    }
-  }
-  
-  private var isLoading: Pulse<Bool> = .init(wrappedValue: false) {
-    didSet {
-      if oldValue.valueUpdatedCount != isLoading.valueUpdatedCount {
-        DispatchQueue.main.async { [weak self] in
-          if self?.isLoading.value == true {
-            self?.loadingIndicator.startAnimating()
-          } else {
-            self?.loadingIndicator.stopAnimating()
-          }
-        }
-      }
-    }
-  }
-  
-  private var err: Pulse<NSError?> = .init(wrappedValue: nil) {
-    didSet {
-      if oldValue.valueUpdatedCount != err.valueUpdatedCount {
-        guard let err = self.err.value else { return }
-        DispatchQueue.main.async { [weak self] in
-          let alertController = UIAlertController(title: "Error", message: err.localizedDescription, preferredStyle: .alert)
-          let okAction = UIAlertAction(title: "확인", style: .default, handler: nil)
-          alertController.addAction(okAction)
-          self?.present(alertController, animated: true, completion: nil)
-        }
-      }
-    }
-  }
+  private var bookList: SearchViewModel.BookList = .init(itemList: [])
   
   // MARK: - public property
   
@@ -132,12 +85,66 @@ public final class SearchViewController: UIViewController, View {
   
   public func bind(viewModel: SearchViewModel) {
     
-    viewModel.state.subscribe { [weak self] state in
-      self?.isLoading = state.isLoading
-      self?.bookList = state.bookList
-      self?.err = state.err
-    }
-    .disposed(by: self.disposeBag)
+    viewModel.state.map { $0.bookList }
+      .withPrevious { newValue, oldValue in
+        return newValue.valueUpdatedCount != oldValue?.valueUpdatedCount
+      }
+      .subscribe { [weak self] bookList in
+        if let oldBookList = self?.bookList {
+          self?.bookList = bookList.value
+          if bookList.value.id != oldBookList.id {
+            DispatchQueue.main.async { [weak self] in
+              self?.tableView.reloadData()
+            }
+          } else {
+            let startIndex = oldBookList.itemList.count
+            let endIndex = startIndex + bookList.value.itemList.count - oldBookList.itemList.count
+            let indexPaths = (startIndex..<endIndex).map { IndexPath(row: $0, section: 0) }
+            DispatchQueue.main.async { [weak self] in
+              self?.tableView.beginUpdates()
+              self?.tableView.insertRows(at: indexPaths, with: .automatic)
+              self?.tableView.endUpdates()
+            }
+          }
+        } else {
+          self?.bookList = bookList.value
+          DispatchQueue.main.async { [weak self] in
+            self?.tableView.reloadData()
+          }
+        }
+      }
+      .disposed(by: self.disposeBag)
+    
+    viewModel.state.map { $0.err }
+      .withPrevious { newValue, oldValue in
+        return newValue.valueUpdatedCount != oldValue?.valueUpdatedCount
+      }
+      .subscribe { [weak self] err in
+        if let err = err.value {
+          DispatchQueue.main.async { [weak self] in
+            let alertController = UIAlertController(title: "Error", message: err.localizedDescription, preferredStyle: .alert)
+            let okAction = UIAlertAction(title: "확인", style: .default, handler: nil)
+            alertController.addAction(okAction)
+            self?.present(alertController, animated: true, completion: nil)
+          }
+        }
+      }
+      .disposed(by: self.disposeBag)
+    
+    viewModel.state.map { $0.isLoading }
+      .withPrevious { newValue, oldValue in
+        return newValue.valueUpdatedCount != oldValue?.valueUpdatedCount
+      }
+      .subscribe { [weak self] isLoading in
+        DispatchQueue.main.async {
+          if isLoading.value {
+            self?.loadingIndicator.startAnimating()
+          } else {
+            self?.loadingIndicator.stopAnimating()
+          }
+        }
+      }
+      .disposed(by: self.disposeBag)
     
   }
   
@@ -169,12 +176,12 @@ public final class SearchViewController: UIViewController, View {
 extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
   
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return self.bookList.value.count
+    return self.bookList.itemList.count
   }
   
   public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     guard let cell: BookTableViewCell = tableView.dequeueReusableCell(withIdentifier: BookTableViewCell.identifier, for: indexPath) as? BookTableViewCell else { return UITableViewCell() }
-    if let info = self.bookList.value[safe: indexPath.row] {
+    if let info = self.bookList.itemList[safe: indexPath.row] {
       cell.setConfigure(info)
     }
     return cell
@@ -189,12 +196,14 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     let contentHeight = scrollView.contentSize.height
     
     if offsetY > contentHeight - scrollView.frame.height {
-      self.viewModel.send(.moreSearch)
+      if self.bookList.itemList.count > 0 {
+        self.viewModel.send(.moreSearch)
+      }
     }
   }
   
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    guard let item = self.viewModel.state.value?.bookList.value[safe: indexPath.row] else { return }
+    guard let item = self.bookList.itemList[safe: indexPath.row] else { return }
     self.viewModel.send(.moveToDetail(id: item.id, title: item.title))
   }
   

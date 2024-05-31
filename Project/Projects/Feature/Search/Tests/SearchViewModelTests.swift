@@ -21,7 +21,7 @@ class SearchViewModelTests: XCTestCase {
     super.setUp()
     disposeBag = DisposeBag()
     usecase = StubSearchUsecase()
-    viewModel = SearchViewModel(searchUsecase: usecase)
+    viewModel = SearchViewModel(coordinator: nil, searchUsecase: usecase)
   }
   
   override func tearDown() {
@@ -44,23 +44,23 @@ class SearchViewModelTests: XCTestCase {
     usecase.searchResult = .success(books)
     let expectation = XCTestExpectation(description: "State updated with search results")
     
-    // When
-    viewModel.send(.search(keyword: "Test"))
-    
     // Then
     viewModel.state.subscribe { state in
       if state.isLoading.valueUpdatedCount == 1 {
         XCTAssertTrue(state.isLoading.value, "로딩 상태가 false가 되어야 합니다")
       }
       if state.bookList.valueUpdatedCount != 0 {
-        XCTAssertEqual(state.bookList.value, books, "검색 결과가 기대한 대로 설정되어야 합니다")
+        XCTAssertEqual(state.bookList.value.itemList, books, "검색 결과가 기대한 대로 설정되어야 합니다")
       }
       if state.isLoading.valueUpdatedCount == 2 {
         XCTAssertFalse(state.isLoading.value, "로딩 상태가 false가 되어야 합니다")
+        expectation.fulfill()
       }
-      expectation.fulfill()
     }
     .disposed(by: self.disposeBag)
+    
+    // When
+    viewModel.send(.search(keyword: "Test"))
     
     wait(for: [expectation], timeout: 5)
   }
@@ -71,23 +71,22 @@ class SearchViewModelTests: XCTestCase {
     usecase.moreResult = .success(moreBooks)
     let expectation = XCTestExpectation(description: "State updated with more search results")
     
-    // When
-    viewModel.send(.moreSearch)
-    
     // Then
-    viewModel.state.subscribe { [weak self] state in
+    viewModel.state.subscribe { state in
       if state.isLoading.valueUpdatedCount == 1 {
         XCTAssertTrue(state.isLoading.value, "로딩 상태가 true가 되어야 합니다")
       }
       if state.bookList.valueUpdatedCount != 0 {
-        XCTAssertEqual(state.bookList.value, moreBooks, "더 많은 검색 결과가 기대한 대로 설정되어야 합니다")
+        XCTAssertEqual(state.bookList.value.itemList, moreBooks, "더 많은 검색 결과가 기대한 대로 설정되어야 합니다")
       }
       if state.isLoading.valueUpdatedCount == 2 {
         XCTAssertFalse(state.isLoading.value, "로딩 상태가 false가 되어야 합니다")
+        expectation.fulfill()
       }
-      self?.disposeBag = DisposeBag()
-      expectation.fulfill()
     }.disposed(by: disposeBag)
+    
+    // When
+    viewModel.send(.moreSearch)
     
     wait(for: [expectation], timeout: 5)
   }
@@ -98,11 +97,8 @@ class SearchViewModelTests: XCTestCase {
     usecase.searchResult = .failure(error)
     let expectation = XCTestExpectation(description: "State updated with search error")
     
-    // When
-    viewModel.send(.search(keyword: "Test"))
-    
     // Then
-    viewModel.state.subscribe { [weak self] state in
+    viewModel.state.subscribe { state in
       if state.isLoading.valueUpdatedCount == 1 {
         XCTAssertTrue(state.isLoading.value, "로딩 상태가 true가 되어야 합니다")
       }
@@ -111,10 +107,12 @@ class SearchViewModelTests: XCTestCase {
       }
       if state.isLoading.valueUpdatedCount == 2 {
         XCTAssertFalse(state.isLoading.value, "로딩 상태가 false가 되어야 합니다")
+        expectation.fulfill()
       }
-      self?.disposeBag = DisposeBag()
-      expectation.fulfill()
     }.disposed(by: disposeBag)
+    
+    // When
+    viewModel.send(.search(keyword: "Test"))
     
     wait(for: [expectation], timeout: 5)
   }
@@ -125,9 +123,6 @@ class SearchViewModelTests: XCTestCase {
     usecase.moreResult = .failure(error)
     let expectation = XCTestExpectation(description: "State updated with more search error")
     
-    // When
-    viewModel.send(.moreSearch)
-    
     // Then
     viewModel.state.subscribe { state in
       if state.isLoading.valueUpdatedCount == 1 {
@@ -138,9 +133,12 @@ class SearchViewModelTests: XCTestCase {
       }
       if state.isLoading.valueUpdatedCount == 2 {
         XCTAssertFalse(state.isLoading.value, "로딩 상태가 false가 되어야 합니다")
+        expectation.fulfill()
       }
-      expectation.fulfill()
     }.disposed(by: disposeBag)
+    
+    // When
+    viewModel.send(.moreSearch)
     
     wait(for: [expectation], timeout: 5)
   }
@@ -150,37 +148,71 @@ class SearchViewModelTests: XCTestCase {
     usecase.isQuerying = true
     let expectation = XCTestExpectation(description: "State updated with query in progress error")
     
-    // When
-    viewModel.send(.search(keyword: "Test"))
-    
     // Then
     viewModel.state.subscribe { state in
       if state.isLoading.valueUpdatedCount != 0 {
         XCTAssertNil(state.err.value, "오류 상태가 nil이어야 합니다")
-        XCTAssertTrue(state.bookList.value.isEmpty, "책 목록이 비어 있어야 합니다")
+        XCTAssertTrue(state.bookList.value.itemList.isEmpty, "책 목록이 비어 있어야 합니다")
+        expectation.fulfill()
       }
-      expectation.fulfill()
     }.disposed(by: disposeBag)
+    
+    // When
+    viewModel.send(.search(keyword: "Test"))
     
     wait(for: [expectation], timeout: 5)
   }
   
-  func testEndOfReach() {
+  func testMoreItemSameId() {
     // Given
-    usecase.isEndOfReach = true
-    let expectation = XCTestExpectation(description: "State updated with end of reach error")
-    
-    // When
-    viewModel.send(.moreSearch)
+    let books = [Book(id: "1", title: "Test Book", subTitle: "SubTitle", price: "10$", imageUrl: nil, linkUrl: nil)]
+    usecase.searchResult = .success(books)
+    let moreBooks = [Book(id: "2", title: "More Book", subTitle: "SubTitle", price: "15$", imageUrl: nil, linkUrl: nil)]
+    usecase.moreResult = .success(moreBooks)
+    let expectation = XCTestExpectation(description: "State updated with more search results")
+    var expectedId: UUID?
     
     // Then
     viewModel.state.subscribe { state in
-      if state.isLoading.valueUpdatedCount != 0 {
-        XCTAssertNil(state.err.value, "오류 상태가 nil이어야 합니다")
-        XCTAssertTrue(state.bookList.value.isEmpty, "책 목록이 비어 있어야 합니다")
+      if state.bookList.valueUpdatedCount == 1 {
+        expectedId = state.bookList.value.id
       }
-      expectation.fulfill()
+      if state.bookList.valueUpdatedCount == 2 {
+        XCTAssertEqual(state.bookList.value.id, expectedId, "더 많은 검색 결과의 아이디는 기존 아이디와 같아야 합니다.")
+        expectation.fulfill()
+      }
     }.disposed(by: disposeBag)
+    
+    // When
+    viewModel.send(.search(keyword: "Test"))
+    usleep(1 * 100 * 1000)
+    viewModel.send(.moreSearch)
+    
+    wait(for: [expectation], timeout: 5)
+  }
+  
+  func testSearchSearchDifferentId() {
+    // Given
+    let books = [Book(id: "1", title: "Test Book", subTitle: "SubTitle", price: "10$", imageUrl: nil, linkUrl: nil)]
+    usecase.searchResult = .success(books)
+    let expectation = XCTestExpectation(description: "State updated with double search")
+    var expectedId: UUID?
+    
+    // Then
+    viewModel.state.subscribe { state in
+      if state.bookList.valueUpdatedCount == 1 {
+        expectedId = state.bookList.value.id
+      }
+      if state.bookList.valueUpdatedCount == 2 {
+        XCTAssertNotEqual(state.bookList.value.id, expectedId, "새로운 검색 결과의 Id는 기존 검색 결과의 Id와 달라야 합니다.")
+        expectation.fulfill()
+      }
+    }.disposed(by: disposeBag)
+    
+    // When
+    viewModel.send(.search(keyword: "Test"))
+    usleep(1 * 100 * 1000)
+    viewModel.send(.search(keyword: "Test"))
     
     wait(for: [expectation], timeout: 5)
   }
