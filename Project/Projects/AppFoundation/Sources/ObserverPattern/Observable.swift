@@ -17,9 +17,12 @@ public class Observable<T> {
   
   private(set) public var value: T? {
     didSet {
+      self.previousValue = oldValue
       notifyObservers()
     }
   }
+  
+  private(set) public var previousValue: T?
   
   // MARK: lifeCycle
   
@@ -48,6 +51,24 @@ public class Observable<T> {
   
   public func onNext(_ value: T) {
     self.value = value
+  }
+  
+  public func map<U>(_ transform: @escaping (T) -> U) -> Observable<U> {
+    let newObservable = Observable<U>()
+    _ = self.subscribe { value in
+      newObservable.onNext(transform(value))
+    }
+    return newObservable
+  }
+  
+  public func withPrevious(_ predicate: @escaping (T, T?) -> Bool) -> Observable<T> {
+    let newObservable = Observable<T>()
+    _ = self.subscribe { newValue in
+      if predicate(newValue, self.previousValue) {
+        newObservable.onNext(newValue)
+      }
+    }
+    return newObservable
   }
   
 }
