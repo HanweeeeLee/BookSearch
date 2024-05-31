@@ -41,7 +41,8 @@ final class DetailUsecaseTests: XCTestCase {
       language: "English",
       publisher: "Big Nerd Ranch",
       authors: "Matthew Mathias, John Gallagher",
-      description: "A comprehensive guide to Swift programming."
+      description: "A comprehensive guide to Swift programming.", 
+      pdfUrls: ["Chapter1": URL(string: "https://naver.com")!]
     )
     stubRepository.result = .success(expectedBookDetail)
     
