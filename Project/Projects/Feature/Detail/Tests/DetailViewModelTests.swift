@@ -21,6 +21,7 @@ final class DetailViewModelTests: XCTestCase {
     super.setUp()
     self.usecase = StubDetailUsecase()
     self.viewModel = DetailViewModel(
+      coordinator: nil,
       detailUsecase: usecase,
       bookId: "testBookId"
     )
@@ -54,9 +55,6 @@ final class DetailViewModelTests: XCTestCase {
     usecase.result = .success(detail)
     let expectation = XCTestExpectation(description: "상세 정보 얻어오는중")
     
-    // When
-    self.viewModel.send(.requestDetail)
-    
     // Then
     self.viewModel.state.subscribe { state in
       if state.isLoading.valueUpdatedCount == 1 {
@@ -67,10 +65,13 @@ final class DetailViewModelTests: XCTestCase {
       }
       if state.isLoading.valueUpdatedCount == 2 {
         XCTAssertFalse(state.isLoading.value, "로딩 상태가 false가 되어야 합니다")
+        expectation.fulfill()
       }
-      expectation.fulfill()
     }
     .disposed(by: self.disposeBag)
+    
+    // When
+    self.viewModel.send(.requestDetail)
     
     wait(for: [expectation], timeout: 5)
   }
@@ -80,9 +81,6 @@ final class DetailViewModelTests: XCTestCase {
     let error = NSError(domain: "TestError", code: -1, userInfo: nil)
     usecase.result = .failure(error)
     let expectation = XCTestExpectation(description: "State updated with search error")
-    
-    // When
-    viewModel.send(.requestDetail)
     
     // Then
     viewModel.state.subscribe { state in
@@ -94,9 +92,12 @@ final class DetailViewModelTests: XCTestCase {
       }
       if state.isLoading.valueUpdatedCount == 2 {
         XCTAssertFalse(state.isLoading.value, "로딩 상태가 false가 되어야 합니다")
+        expectation.fulfill()
       }
-      expectation.fulfill()
     }.disposed(by: disposeBag)
+    
+    // When
+    viewModel.send(.requestDetail)
     
     wait(for: [expectation], timeout: 5)
   }

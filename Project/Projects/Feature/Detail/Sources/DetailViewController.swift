@@ -135,44 +135,6 @@ public final class DetailViewController: UIViewController, View {
   
   // MARK: - private property
   
-  
-  private var bookDetail: Pulse<BookDetail?> = .init(wrappedValue: nil) {
-    didSet {
-      if oldValue.valueUpdatedCount != bookDetail.valueUpdatedCount {
-        self.updateUI()
-      }
-    }
-  }
-  
-  private var isLoading: Pulse<Bool> = .init(wrappedValue: false) {
-    didSet {
-      if oldValue.valueUpdatedCount != isLoading.valueUpdatedCount {
-        DispatchQueue.main.async { [weak self] in
-          if self?.isLoading.value == true {
-            self?.loadingIndicator.startAnimating()
-          } else {
-            self?.loadingIndicator.stopAnimating()
-          }
-        }
-      }
-    }
-  }
-  
-  private var err: Pulse<NSError?> = .init(wrappedValue: nil) {
-    didSet {
-      if oldValue.valueUpdatedCount != err.valueUpdatedCount {
-        if let err = err.value {
-          DispatchQueue.main.async { [weak self] in
-            let alertController = UIAlertController(title: "Error", message: err.localizedDescription, preferredStyle: .alert)
-            let okAction = UIAlertAction(title: "확인", style: .default, handler: nil)
-            alertController.addAction(okAction)
-            self?.present(alertController, animated: true, completion: nil)
-          }
-        }
-      }
-    }
-  }
-  
   // MARK: - public property
   
   public var viewModel: DetailViewModel
@@ -218,12 +180,49 @@ public final class DetailViewController: UIViewController, View {
   }
   
   public func bind(viewModel: DetailViewModel) {
-    viewModel.state.subscribe { [weak self] state in
-      self?.isLoading = state.isLoading
-      self?.bookDetail = state.bookDetail
-      self?.err = state.err
-    }
-    .disposed(by: self.disposeBag)
+    
+    viewModel.state.map { $0.bookDetail }
+      .withPrevious { newValue, oldValue in
+        return newValue.valueUpdatedCount != oldValue?.valueUpdatedCount
+      }
+      .subscribe { [weak self] info in
+        if let detailInfo = info.value {
+          self?.updateUI(info: detailInfo)
+        }
+      }
+      .disposed(by: self.disposeBag)
+
+    viewModel.state.map { $0.err }
+      .withPrevious { newValue, oldValue in
+        return newValue.valueUpdatedCount != oldValue?.valueUpdatedCount
+      }
+      .subscribe { [weak self] err in
+        if let err = err.value {
+          DispatchQueue.main.async { [weak self] in
+            let alertController = UIAlertController(title: "Error", message: err.localizedDescription, preferredStyle: .alert)
+            let okAction = UIAlertAction(title: "확인", style: .default, handler: nil)
+            alertController.addAction(okAction)
+            self?.present(alertController, animated: true, completion: nil)
+          }
+        }
+      }
+      .disposed(by: self.disposeBag)
+    
+    viewModel.state.map { $0.isLoading }
+      .withPrevious { newValue, oldValue in
+        return newValue.valueUpdatedCount != oldValue?.valueUpdatedCount
+      }
+      .subscribe { [weak self] isLoading in
+        DispatchQueue.main.async {
+          if isLoading.value {
+            self?.loadingIndicator.startAnimating()
+          } else {
+            self?.loadingIndicator.stopAnimating()
+          }
+        }
+      }
+      .disposed(by: self.disposeBag)
+    
   }
   
   // MARK: - private method
@@ -409,8 +408,7 @@ public final class DetailViewController: UIViewController, View {
     )
   }
   
-  private func updateUI() {
-    guard let bookDetail = bookDetail.value else { return }
+  private func updateUI(info bookDetail: BookDetail) {
     DispatchQueue.main.async { [weak self] in
       self?.titleLabel.text = bookDetail.title
       self?.subTitleLabel.text = bookDetail.subTitle
