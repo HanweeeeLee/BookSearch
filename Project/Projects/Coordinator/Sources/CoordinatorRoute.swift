@@ -16,4 +16,5 @@ public enum CoordinatorRoute {
   case detailIsRequired(id: String, title: String)
   case detailIsComplete
   
+  case webViewIsRequired(url: URL, title: String? = nil)
 }

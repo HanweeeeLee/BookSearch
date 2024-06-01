@@ -44,7 +44,8 @@ public final class DetailRepositoryImplement: DetailRepository {
           language: dtoModel.language,
           publisher: dtoModel.publisher,
           authors: dtoModel.authors,
-          description: dtoModel.description
+          description: dtoModel.description, 
+          pdfUrls: dtoModel.pdfUrls
         )
       )
     case .failure(let err):

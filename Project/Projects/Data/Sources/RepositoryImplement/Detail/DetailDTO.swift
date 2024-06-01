@@ -23,6 +23,7 @@ struct DetailDTO: Decodable {
   let publisher: String
   let authors: String
   let description: String
+  let pdfUrls: [String: URL]
   
   enum CodingKeys: String, CodingKey {
     case id = "isbn13"
@@ -38,6 +39,7 @@ struct DetailDTO: Decodable {
     case publisher
     case authors
     case description = "desc"
+    case pdfUrls = "pdf"
   }
 
   init(from decoder: Decoder) throws {
@@ -63,6 +65,8 @@ struct DetailDTO: Decodable {
     publisher = try container.decode(String.self, forKey: .publisher)
     authors = try container.decode(String.self, forKey: .authors)
     description = try container.decode(String.self, forKey: .description)
+    let pdfUrlsValues = try? container.decode([String: URL].self, forKey: .pdfUrls)
+    self.pdfUrls = pdfUrlsValues ?? [:]
   }
   
 }
