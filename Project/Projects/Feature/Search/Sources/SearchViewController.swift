@@ -155,7 +155,7 @@ public final class SearchViewController: UIViewController, View {
     backgroundView.fillSuperview()
     
     backgroundView.addSubview(baseView)
-    baseView.fillSuperview(padding: UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0))
+    baseView.fillSuperview()
     
     baseView.addSubview(searchBar)
     baseView.addSubview(tableView)

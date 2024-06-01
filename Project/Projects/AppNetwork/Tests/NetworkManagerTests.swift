@@ -24,7 +24,6 @@ class NetworkManagerTests: XCTestCase {
 
   }
 
-  // 성공적인 GET 요청 테스트
   func testSuccessfulGetRequest() async throws {
     // Given
     let expectedPost = Post(id: 1, title: "Sample Title", body: "This is a sample body.")
