@@ -10,8 +10,8 @@ import Foundation
 
 public struct Pulse<Value: Equatable>: Equatable {
   
-  public internal(set) var value: Value
-  public internal(set) var valueUpdatedCount: UInt
+  public private(set) var value: Value
+  public private(set) var valueUpdatedCount: UInt
   
   public init(wrappedValue: Value, oldPulse: Pulse? = nil) {
     self.value = wrappedValue
